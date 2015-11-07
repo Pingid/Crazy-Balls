@@ -20,11 +20,8 @@ var ball = Ball.create({
   }
 })
 ```
-* globalAcc = fixed forces from environment
-* id = unique id for each ball
-* ctx = canvas context
-* boundingBox = Set where collision with walls happen
+Call update within an animation frame to coninuasly update its position
 
-* masses array of masses that exert force on the ball;
-
-* ball.update(masses)
+```javascript
+ball.update(masses)
+```
