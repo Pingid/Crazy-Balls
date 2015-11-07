@@ -1,6 +1,6 @@
 # simple-verlet-physics
 
-```
+```javascript
 var ball = Ball.create({
   globalAcc: {x: 0, y: 0.01 },
   id: 03,
