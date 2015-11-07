@@ -1,6 +1,6 @@
 # simple-verlet-physics
 
-'''
+```
 var ball = Ball.create({
   globalAcc: {x: 0, y: 0.01 },
   id: 03,
@@ -19,7 +19,7 @@ var ball = Ball.create({
     y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
   }
 })
-'''
+```
 * globalAcc = fixed forces from environment
 * id = unique id for each ball
 * ctx = canvas context
