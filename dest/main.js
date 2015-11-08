@@ -4648,10 +4648,8 @@ return /******/ (function(modules) { // webpackBootstrap
 },{}],2:[function(require,module,exports){
 // Dependancies
 var Kefir = require('Kefir');
-
 // Objects
 var Ball = require('./objects/ball');
-console.log();
 
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
@@ -4666,6 +4664,7 @@ var ball1 = Ball.create({
   ctx: ctx,
   radius: 40,
   mass: 40,
+  collisions: true,
   boundingBox: {
     x: {left: -window.innerWidth/2, right: window.innerWidth/2},
     y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
@@ -4678,6 +4677,7 @@ var ball2 = Ball.create({
   mass: 4,
   velocity: {x: 1, y: .1},
   position: {x: -80, y: -80},
+  collisions: true,
   boundingBox: {
     x: {left: -window.innerWidth/2, right: window.innerWidth/2},
     y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
@@ -4691,60 +4691,81 @@ var ball3 = Ball.create({
   mass: 30,
   velocity: {x: 1, y: .1},
   position: {x: -0, y: -80},
+  collisions: true,
   boundingBox: {
     x: {left: -window.innerWidth/2, right: window.innerWidth/2},
     y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
   }
 })
 
-var balls = [ball1, ball2, ball3];
+// var balls = [ball1, ball2, ball3];
+// var masses = [ball1, ball2, ball3];
+var balls = [];
+var masses = [];
 
-var masses = [ball1, ball2, ball3];
 function generateBalls(num, ctx){
   for(j=0; j<num; j++){
-    console.log("hello")
-    var i = Ball.create({
+    var ball = Ball.create({
       id: j,
       ctx: ctx,
       elasticity: 0.99,
-      radius: Math.random()*1+30,
-      // velocity: {x: Math.random()*2, y: Math.random()*0.1},
+      collisions: false,
+      radius: Math.random()*20+5,
+      fillColor: "#" + (Math.random()*0xFFF<<0),
+      velocity: {x: 0, y: 0},
       position: {x: Math.random()*500-250, y: Math.random()*500-250},
       boundingBox: {
         x: {left: -window.innerWidth/2, right: window.innerWidth/2},
         y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
       }
     })
-    balls.push(i);
-    masses.push(i);
+    balls.push(ball);
+    masses.push(ball);
   }
 }
-generateBalls(0, ctx)
-// ball2.update();
-function update () {
-  setInterval(function () {
-    ctx.clearRect(-window.innerWidth/2,-window.innerHeight/2,window.innerWidth,window.innerHeight);
-    balls.forEach(function(ball){
-      ball.update(masses);
-      // mousePoint.draw();
-    })
-  }, 15);
-}
-update();
-// var count = 0
-// for(i=0; i<1; i++){
-//     setTimeout(function(){
-//       console.log("-------------------FRAME " + count + "-----------------------")
-//       count++
-//       balls.forEach(function(ball){
-//         ball.update(masses);
-//       })
-//     }, 300)
-// };
+generateBalls(3, ctx)
 
-// balls.forEach(function(ball){
-//   ball.update(masses);
-// })
+function animate() {
+  // ctx.clearRect(-window.innerWidth/2,-window.innerHeight/2,window.innerWidth,window.innerHeight);
+  balls.forEach(function(ball){
+    ball.update(masses);
+  })
+  window.requestAnimationFrame(animate)
+}
+window.requestAnimationFrame(animate)
+
+function clickBall(container){
+  startPoint = {};
+  var mouseDowns = Kefir.fromEvents(container, 'mousedown');
+  var mouseMoves = Kefir.fromEvents(container, 'mousemove');
+  var mouseUps = Kefir.fromEvents(container, 'mouseup');
+  mouseDowns.onValue(function(e){
+    startPoint = {x: e.pageX, y: e.pageY};
+    console.log(startPoint);
+  })
+  mouseUps.onValue(function(e){
+    var radius = Math.sqrt( Math.pow(startPoint.x - e.pageX, 2) + Math.pow(startPoint.y - e.pageY, 2) ) != 0 ? Math.sqrt( Math.pow(startPoint.x - e.pageX, 2) + Math.pow(startPoint.y - e.pageY, 2) ) : 5
+    var ball = Ball.create({
+      id: balls.length + 1,
+      ctx: ctx,
+      elasticity: 0.99,
+      collisions: false,
+      radius: radius,
+      fillColor: "#" + (Math.random()*0xFFF<<0),
+      velocity: {x: 0, y: 0},
+      position: {x: e.pageX - window.innerWidth/2, y: e.pageY - window.innerHeight/2},
+      boundingBox: {
+        x: {left: -window.innerWidth/2, right: window.innerWidth/2},
+        y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
+      }
+    })
+    balls.push(ball);
+    masses.push(ball);
+    startPoint = {};
+  })
+}
+clickBall(canvas)
+
 function ballInteract(container){
   var startPoint = [0,0];
   var run;
@@ -4764,45 +4785,11 @@ function ballInteract(container){
     }
   });
   mouseUps.onValue(function () {run = false; });
-
-  // scrolls.onValue(function (e) {cube.size += e; });
 }
-ballInteract(canvas);
-
-
-// function cubeInteract (container){
-//   var startPoint = [0,0];
-//   var mouseDowns = Kefir.fromEvents(container, 'mousedown');
-//   var mouseMoves = Kefir.fromEvents(container, 'mousemove');
-//   var mouseUps = Kefir.fromEvents(container, 'mouseup');
-// 	var scrolls = Kefir.stream(function (emitter) {
-// 	  function emitScrollY () {
-// 	    emitter.emit(window.scrollY);
-// 	  }
-// 	  emitScrollY ();
-// 	  window.addEventListener('scroll', emitScrollY);
-// 	  return function () {
-// 	    window.removeEventListener('scroll', emitScrollY);
-// 	  };
-
-// 	}).toProperty ();
-//   var moves = mouseDowns.flatMap(function() {
-//     return mouseMoves.takeUntilBy(mouseUps);
-//   });
-//   mouseDowns.onValue(function (e) { startPoint = [e.pageX,e.pageY]; run = true; });
-//   moves.onValue(function (e){
-//     rotation = [(startPoint[1]-e.pageY)*0.0001, (startPoint[0]-e.pageX)*0.0001,0];
-//   });
-//   mouseUps.onValue(function () {run = false; });
-
-//   // scrolls.onValue(function (e) {cube.size += e; });
-// }
-// cubeInteract(canvas);
 
 },{"./objects/ball":3,"Kefir":1}],3:[function(require,module,exports){
 var Mass = require('./shapes');
 var Utils = require('../utils/utils');
-var Settings = require('../settings.js');
 
 var Ball = Mass.create({
   position: {x: 0, y: 0},
@@ -4815,10 +4802,11 @@ var Ball = Mass.create({
   fillColor: '#FFFFFF',
   lineColor: '#000000',
   fixed: false,
+  collisions: false,
   setBounding: function(){
     this.height = this.radius;
     this.width = this.radius;
-    this.mass = this.radius * 1
+    this.mass = this.radius * 0.1
   },
   resolvePosition: function(){
     // console.log(this.acceleration);
@@ -4828,10 +4816,10 @@ var Ball = Mass.create({
   	this.position.x += this.velocity.x;
   	this.position.y += this.velocity.y;
   },
-  gravitationalPull: function(object){
+  gravitationalPull: function(object, number){
     var dist = Utils.distance(this, object)
     var ang = Utils.angle(this, object);
-    var G = Settings.gravity/100;
+    var G = 1/number;
     var force = G * this.mass * object.mass /Math.sqrt(dist);
     // console.log([this.id, dist, ang, G, force]);
     // console.log([,ang,force,this.mass])
@@ -4843,10 +4831,11 @@ var Ball = Mass.create({
   resolveAcceleration: function(objects){
     var forces = {x: 0, y: 0};
     that = this;
+    var totalMass = objects.map(function(object){ return object.mass })
+      .reduce(function(prev, curr) { return prev + curr });
     objects.forEach(function(object){
       if(object.id !== that.id){
-        // console.log([object, that, object.id !== that.id])
-        var objectForces = that.gravitationalPull(object)
+        var objectForces = that.gravitationalPull(object, totalMass)
         forces = {
           x: forces.x + objectForces.x,
           y: forces.y + objectForces.y
@@ -4866,11 +4855,14 @@ var Ball = Mass.create({
   resolveCollisionVecter: function(a,  b){
     var angleBetween = this.getAngleBetween(a, b);
 
+    // Velocity vecter
     var velA = this.getVelocitie(a);
     var velB = this.getVelocitie(b);
 
+    // Velocity vecter angle
     var angleA = this.getVelocitieAngle(a);
     var angleB = this.getVelocitieAngle(b);
+
 
     var rotateVelAX = velA * Math.cos(angleA - angleBetween);
     var rotateVelAY = velA * Math.sin(angleA - angleBetween);
@@ -4884,60 +4876,18 @@ var Ball = Mass.create({
       x: a.position.x - a.velocity.x,
       y: a.position.y - a.velocity.y
     }
-    b.position = {
-      x: b.position.x - b.velocity.x,
-      y: b.position.y - b.velocity.y
-    }
+    // b.position = {
+    //   x: b.position.x - b.velocity.x,
+    //   y: b.position.y - b.velocity.y
+    // }
     a.velocity = {
       x: a.elasticity * Math.cos(angleBetween) * finalVelocityAX + Math.cos(angleBetween + Math.PI/2) * rotateVelAY * a.elasticity,
       y: a.elasticity * Math.sin(angleBetween) * finalVelocityAX + Math.sin(angleBetween + Math.PI/2) * rotateVelAY * a.elasticity
     }
-    b.velocity = {
-      x: b.elasticity * Math.cos(angleBetween) * finalVelocityBX + Math.cos(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity,
-      y: b.elasticity * Math.sin(angleBetween) * finalVelocityBX + Math.sin(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity
-    }
-  },
-  resolveCollisionVecter2: function(a,b){
-    var diff = {
-      x: a.position.x - b.position.x,
-      y: a.position.y - b.position.y
-    }
-    var distance = this.distanceBetween(a,b);
-    var diffDist = distance - (a.radius + b.radius)
-
-    var depth = {
-      x: diff.x * (diffDist / distance),
-      y: diff.y * (diffDist / distance)
-    }
-    a.position = { x: depth.x * 0.5, y: depth.y * 0.5 };
-    b.position = { x: depth.x * 0.5, y: depth.y * 0.5 };
-
-    var pr1 = a.elasticity * (diff.x * a.velocity.x + diff.y * a.velocity.y) / (diff.x * diff.x + diff.y * diff.y);
-    var pr2 = b.elasticity * (diff.x * b.velocity.x + diff.y * b.velocity.y) / (diff.x * diff.x + diff.y * diff.y);
-    newVelocity = {
-      a: {
-        x: a.velocity.x + pr2 * diff.x - pr1 * diff.x,
-        y: a.velocity.y + pr1 * diff.x - pr2 * diff.x
-      },
-      b: {
-        x: a.velocity.x + pr2 * diff.y - pr1 * diff.y,
-        y: a.velocity.y + pr1 * diff.y - pr2 * diff.y
-      }
-    }
-    console.log({diff: diff, dist: distance, diffDist: diffDist, depth: depth, pr1: pr1, pr2: pr2, vel: newVelocity})
-    a.velocity = {
-      x: a.velocity.x + pr2 * diff.x - pr1 * diff.x,
-      y: a.velocity.y + pr1 * diff.x - pr2 * diff.x
-    }
-    b.velocity = {
-      x: a.velocity.x + pr2 * diff.y - pr1 * diff.y,
-      y: a.velocity.y + pr1 * diff.y - pr2 * diff.y
-    }
-
-    // a.velocity.x += pr2 * diff.x - pr1 * diff.x;
-    // a.velocity.y += pr1 * diff.x - pr2 * diff.x;
-    // b.velocity.x += pr2 * diff.y - pr1 * diff.y;
-    // b.velocity.y += pr1 * diff.y - pr2 * diff.y;
+    // b.velocity = {
+    //   x: b.elasticity * Math.cos(angleBetween) * finalVelocityBX + Math.cos(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity,
+    //   y: b.elasticity * Math.sin(angleBetween) * finalVelocityBX + Math.sin(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity
+    // }
   },
   resolveCollision: function(objects){
     var that = this;
@@ -4945,7 +4895,7 @@ var Ball = Mass.create({
       if(that.id != object.id){
         if(that.detectCollision(that, object)){
 
-          that.fillColor = "#" + (Math.random()*0xFFF<<0);
+          // that.fillColor = "#" + (Math.random()*0xFFF<<0);
 
           that.resolveCollisionVecter(that, object)
         }
@@ -4967,7 +4917,7 @@ var Ball = Mass.create({
     // this.resolveCollisionBalls(objects);
     this.resolveAcceleration(objects);
   	this.resolvePosition();
-    // this.resolveCollision(objects);
+    this.collisions ? this.resolveCollision(objects) : null;
   	this.rebound();
   	this.draw();
   }
@@ -4975,9 +4925,8 @@ var Ball = Mass.create({
 
 module.exports = Ball;
 
-},{"../settings.js":5,"../utils/utils":6,"./shapes":4}],4:[function(require,module,exports){
+},{"../utils/utils":5,"./shapes":4}],4:[function(require,module,exports){
 var Utils = require('../utils/utils');
-var Settings = require('../settings');
 
 var Mass = {
   force: {x: 0, y: 0},
@@ -5042,12 +4991,7 @@ var Mass = {
 
 module.exports = Mass;
 
-},{"../settings":5,"../utils/utils":6}],5:[function(require,module,exports){
-module.exports = {
-  gravity: 0.9
-}
-
-},{}],6:[function(require,module,exports){
+},{"../utils/utils":5}],5:[function(require,module,exports){
 module.exports = {
   distance: function(point1, point2) {
       return Math.sqrt(Math.pow(point2.position.x - point1.position.x, 2) + Math.pow(point2.position.y - point1.position.y, 2));

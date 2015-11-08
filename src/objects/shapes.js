@@ -1,5 +1,4 @@
 var Utils = require('../utils/utils');
-var Settings = require('../settings');
 
 var Mass = {
   force: {x: 0, y: 0},

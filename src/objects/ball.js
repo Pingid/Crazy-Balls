@@ -1,6 +1,5 @@
 var Mass = require('./shapes');
 var Utils = require('../utils/utils');
-var Settings = require('../settings.js');
 
 var Ball = Mass.create({
   position: {x: 0, y: 0},
@@ -13,10 +12,11 @@ var Ball = Mass.create({
   fillColor: '#FFFFFF',
   lineColor: '#000000',
   fixed: false,
+  collisions: false,
   setBounding: function(){
     this.height = this.radius;
     this.width = this.radius;
-    this.mass = this.radius * 1
+    this.mass = this.radius * 0.1
   },
   resolvePosition: function(){
     // console.log(this.acceleration);
@@ -26,10 +26,10 @@ var Ball = Mass.create({
   	this.position.x += this.velocity.x;
   	this.position.y += this.velocity.y;
   },
-  gravitationalPull: function(object){
+  gravitationalPull: function(object, number){
     var dist = Utils.distance(this, object)
     var ang = Utils.angle(this, object);
-    var G = Settings.gravity/100;
+    var G = 1/number;
     var force = G * this.mass * object.mass /Math.sqrt(dist);
     // console.log([this.id, dist, ang, G, force]);
     // console.log([,ang,force,this.mass])
@@ -41,10 +41,11 @@ var Ball = Mass.create({
   resolveAcceleration: function(objects){
     var forces = {x: 0, y: 0};
     that = this;
+    var totalMass = objects.map(function(object){ return object.mass })
+      .reduce(function(prev, curr) { return prev + curr });
     objects.forEach(function(object){
       if(object.id !== that.id){
-        // console.log([object, that, object.id !== that.id])
-        var objectForces = that.gravitationalPull(object)
+        var objectForces = that.gravitationalPull(object, totalMass)
         forces = {
           x: forces.x + objectForces.x,
           y: forces.y + objectForces.y
@@ -64,11 +65,14 @@ var Ball = Mass.create({
   resolveCollisionVecter: function(a,  b){
     var angleBetween = this.getAngleBetween(a, b);
 
+    // Velocity vecter
     var velA = this.getVelocitie(a);
     var velB = this.getVelocitie(b);
 
+    // Velocity vecter angle
     var angleA = this.getVelocitieAngle(a);
     var angleB = this.getVelocitieAngle(b);
+
 
     var rotateVelAX = velA * Math.cos(angleA - angleBetween);
     var rotateVelAY = velA * Math.sin(angleA - angleBetween);
@@ -82,60 +86,18 @@ var Ball = Mass.create({
       x: a.position.x - a.velocity.x,
       y: a.position.y - a.velocity.y
     }
-    b.position = {
-      x: b.position.x - b.velocity.x,
-      y: b.position.y - b.velocity.y
-    }
+    // b.position = {
+    //   x: b.position.x - b.velocity.x,
+    //   y: b.position.y - b.velocity.y
+    // }
     a.velocity = {
       x: a.elasticity * Math.cos(angleBetween) * finalVelocityAX + Math.cos(angleBetween + Math.PI/2) * rotateVelAY * a.elasticity,
       y: a.elasticity * Math.sin(angleBetween) * finalVelocityAX + Math.sin(angleBetween + Math.PI/2) * rotateVelAY * a.elasticity
     }
-    b.velocity = {
-      x: b.elasticity * Math.cos(angleBetween) * finalVelocityBX + Math.cos(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity,
-      y: b.elasticity * Math.sin(angleBetween) * finalVelocityBX + Math.sin(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity
-    }
-  },
-  resolveCollisionVecter2: function(a,b){
-    var diff = {
-      x: a.position.x - b.position.x,
-      y: a.position.y - b.position.y
-    }
-    var distance = this.distanceBetween(a,b);
-    var diffDist = distance - (a.radius + b.radius)
-
-    var depth = {
-      x: diff.x * (diffDist / distance),
-      y: diff.y * (diffDist / distance)
-    }
-    a.position = { x: depth.x * 0.5, y: depth.y * 0.5 };
-    b.position = { x: depth.x * 0.5, y: depth.y * 0.5 };
-
-    var pr1 = a.elasticity * (diff.x * a.velocity.x + diff.y * a.velocity.y) / (diff.x * diff.x + diff.y * diff.y);
-    var pr2 = b.elasticity * (diff.x * b.velocity.x + diff.y * b.velocity.y) / (diff.x * diff.x + diff.y * diff.y);
-    newVelocity = {
-      a: {
-        x: a.velocity.x + pr2 * diff.x - pr1 * diff.x,
-        y: a.velocity.y + pr1 * diff.x - pr2 * diff.x
-      },
-      b: {
-        x: a.velocity.x + pr2 * diff.y - pr1 * diff.y,
-        y: a.velocity.y + pr1 * diff.y - pr2 * diff.y
-      }
-    }
-    console.log({diff: diff, dist: distance, diffDist: diffDist, depth: depth, pr1: pr1, pr2: pr2, vel: newVelocity})
-    a.velocity = {
-      x: a.velocity.x + pr2 * diff.x - pr1 * diff.x,
-      y: a.velocity.y + pr1 * diff.x - pr2 * diff.x
-    }
-    b.velocity = {
-      x: a.velocity.x + pr2 * diff.y - pr1 * diff.y,
-      y: a.velocity.y + pr1 * diff.y - pr2 * diff.y
-    }
-
-    // a.velocity.x += pr2 * diff.x - pr1 * diff.x;
-    // a.velocity.y += pr1 * diff.x - pr2 * diff.x;
-    // b.velocity.x += pr2 * diff.y - pr1 * diff.y;
-    // b.velocity.y += pr1 * diff.y - pr2 * diff.y;
+    // b.velocity = {
+    //   x: b.elasticity * Math.cos(angleBetween) * finalVelocityBX + Math.cos(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity,
+    //   y: b.elasticity * Math.sin(angleBetween) * finalVelocityBX + Math.sin(angleBetween + Math.PI/2) * rotateVelBY * b.elasticity
+    // }
   },
   resolveCollision: function(objects){
     var that = this;
@@ -143,7 +105,7 @@ var Ball = Mass.create({
       if(that.id != object.id){
         if(that.detectCollision(that, object)){
 
-          that.fillColor = "#" + (Math.random()*0xFFF<<0);
+          // that.fillColor = "#" + (Math.random()*0xFFF<<0);
 
           that.resolveCollisionVecter(that, object)
         }
@@ -165,7 +127,7 @@ var Ball = Mass.create({
     // this.resolveCollisionBalls(objects);
     this.resolveAcceleration(objects);
   	this.resolvePosition();
-    // this.resolveCollision(objects);
+    this.collisions ? this.resolveCollision(objects) : null;
   	this.rebound();
   	this.draw();
   }
