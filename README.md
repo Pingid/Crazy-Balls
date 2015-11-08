@@ -15,14 +15,16 @@ var ball = Ball.create({
   fillColor: '#FFFFFF',
   lineColor: '#000000',
   collisions: false,
+  massInteract: true,
   boundingBox: {
     x: {left: -window.innerWidth/2, right: window.innerWidth/2},
     y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
   }
 })
 ```
-Call update within an animation frame to coninuasly update its position
+Call update within an animation frame to continuously update its position
 
 ```javascript
 ball.update(masses)
 ```
+masses being an array of all the objects;

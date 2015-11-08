@@ -1,7 +1,7 @@
-var Utils = require('../utils/utils');
-
 var Mass = {
   force: {x: 0, y: 0},
+  position: {x: 0, y: 0},
+  velocity: {x: 0, y: 0},
   acceleration: {x: 0, y: 0},
   globalAcc: {x: 0, y: 0 },
   boundingBox: {},
