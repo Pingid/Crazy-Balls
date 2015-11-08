@@ -4646,9 +4646,7 @@ return /******/ (function(modules) { // webpackBootstrap
 });
 ;
 },{}],2:[function(require,module,exports){
-// Dependancies
 var Kefir = require('Kefir');
-// Objects
 var Ball = require('./objects/ball');
 
 var canvas = document.getElementById('canvas');
@@ -4657,51 +4655,6 @@ var ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 ctx.translate(window.innerWidth/2, window.innerHeight/2);
-
-
-var ball1 = Ball.create({
-  id: 01,
-  ctx: ctx,
-  radius: 40,
-  mass: 40,
-  collisions: true,
-  boundingBox: {
-    x: {left: -window.innerWidth/2, right: window.innerWidth/2},
-    y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
-  }
-});
-var ball2 = Ball.create({
-  id: 02,
-  ctx: ctx,
-  radius: 4,
-  mass: 4,
-  velocity: {x: 1, y: .1},
-  position: {x: -80, y: -80},
-  collisions: true,
-  boundingBox: {
-    x: {left: -window.innerWidth/2, right: window.innerWidth/2},
-    y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
-  }
-})
-var ball3 = Ball.create({
-  globalAcc: {x: 0, y: 0.01 },
-  id: 03,
-  ctx: ctx,
-  radius: 30,
-  mass: 30,
-  velocity: {x: 1, y: .1},
-  position: {x: -0, y: -80},
-  collisions: true,
-  boundingBox: {
-    x: {left: -window.innerWidth/2, right: window.innerWidth/2},
-    y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
-  }
-})
-
-// var balls = [ball1, ball2, ball3];
-// var masses = [ball1, ball2, ball3];
-var balls = [];
-var masses = [];
 
 function generateBalls(num, ctx){
   for(j=0; j<num; j++){
@@ -4723,16 +4676,6 @@ function generateBalls(num, ctx){
     masses.push(ball);
   }
 }
-generateBalls(3, ctx)
-
-function animate() {
-  // ctx.clearRect(-window.innerWidth/2,-window.innerHeight/2,window.innerWidth,window.innerHeight);
-  balls.forEach(function(ball){
-    ball.update(masses);
-  })
-  window.requestAnimationFrame(animate)
-}
-window.requestAnimationFrame(animate)
 
 function clickBall(container){
   startPoint = {};
@@ -4764,28 +4707,20 @@ function clickBall(container){
     startPoint = {};
   })
 }
-clickBall(canvas)
+var balls = [];
+var masses = [];
 
-function ballInteract(container){
-  var startPoint = [0,0];
-  var run;
-  var mouseDowns = Kefir.fromEvents(container, 'mousedown');
-  var mouseMoves = Kefir.fromEvents(container, 'mousemove');
-  var mouseUps = Kefir.fromEvents(container, 'mouseup');
-  var moves = mouseDowns.flatMap(function() {
-    return mouseMoves.takeUntilBy(mouseUps);
-  });
-  mouseDowns.onValue(function (e) {
-    startPoint = [e.pageX,e.pageY];
-    run = true;
-  });
-  moves.onValue(function (e){
-    if(run){
-      mousePoint.mousePosition = {x: e.pageX-window.innerWidth/2, y: e.pageY-window.innerHeight/2}
-    }
-  });
-  mouseUps.onValue(function () {run = false; });
+clickBall(canvas)
+generateBalls(50, ctx)
+
+function animate() {
+  ctx.clearRect(-window.innerWidth/2,-window.innerHeight/2,window.innerWidth,window.innerHeight);
+  balls.forEach(function(ball){
+    ball.update(masses);
+  })
+  window.requestAnimationFrame(animate)
 }
+window.requestAnimationFrame(animate)
 
 },{"./objects/ball":3,"Kefir":1}],3:[function(require,module,exports){
 var Mass = require('./shapes');

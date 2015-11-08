@@ -14,6 +14,7 @@ var ball = Ball.create({
   lineWidth: 0,
   fillColor: '#FFFFFF',
   lineColor: '#000000',
+  collisions: false,
   boundingBox: {
     x: {left: -window.innerWidth/2, right: window.innerWidth/2},
     y: {top: -window.innerHeight/2, bottom: window.innerHeight/2}
